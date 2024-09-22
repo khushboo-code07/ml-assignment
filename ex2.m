@@ -1,151 +1,121 @@
-%% Machine Learning Online Class - Exercise 2: Logistic Regression
+%% Machine Learning Online Class
+%  Exercise 2: Linear regression with multiple variables
 %
 %  Instructions
 %  ------------
 % 
-%  This file contains code that helps you get started on the logistic
-%  regression exercise. You will need to complete the following functions 
-%  in this exericse:
-%
-%     sigmoid.m
-%     costFunction.m
-%     predict.m
-%     costFunctionReg.m
-%
-%  For this exercise, you will not need to change any code in this file,
-%  or any other files other than those mentioned above.
-%
+%  you should complete the code to predict the price of a 1650 sq-ft, 3 br house.
 
-%% Initialization
+%% ================ Part 1: Feature Normalization ================
+
+%% Clear and Close Figures
 clear ; close all; clc
 
+fprintf('Loading data ...\n');
+
 %% Load Data
-%  The first two columns contains the exam scores and the third column
-%  contains the label.
+data = load('ex2data.txt');
+X = data(:, 1:2);
+y = data(:, 3);
+m = length(y);
 
-data = load('ex2data1.txt');
-X = data(:, [1, 2]); y = data(:, 3);
+% Print out some data points
+fprintf('First 10 examples from the dataset: \n');
+fprintf(' x = [%.0f %.0f], y = %.0f \n', [X(1:10,:) y(1:10,:)]');
 
-%% ==================== Part 1: Plotting ====================
-%  We start the exercise by first plotting the data to understand the 
-%  the problem we are working with.
+fprintf('Program paused. Press enter to continue.\n');
+pause;
 
-fprintf(['Plotting data with + indicating (y = 1) examples and o ' ...
-         'indicating (y = 0) examples.\n']);
+% Scale features and set them to zero mean
+fprintf('Normalizing Features ...\n');
 
-%plotData(X, y);
+[X mu sigma] = featureNormalize(X);
 
-% Put some labels 
-% hold on;
-% % Labels and Legend
-% xlabel('Exam 1 score')
-% ylabel('Exam 2 score')
-% 
-% % Specified in plot order
-% legend('Admitted', 'Not admitted')
-% hold off;
-% 
-% fprintf('\nProgram paused. Press enter to continue.\n');
-%pause;
-
-
-%% ============ Part 2: Compute Cost and Gradient ============
-%  In this part of the exercise, you will implement the cost and gradient
-%  for logistic regression. You neeed to complete the code in 
-%  costFunction.m
-
-%  Setup the data matrix appropriately, and add ones for the intercept term
-[m, n] = size(X);
-
-% Add intercept term to x and X_test
+% Add intercept term to X
 X = [ones(m, 1) X];
-
-% Initialize fitting parameters
-initial_theta = zeros(n + 1, 1);
-
-% Compute and display initial cost and gradient
-[cost, grad] = costFunction(initial_theta, X, y);
-
-fprintf('Cost at initial theta (zeros): %f\n', cost);
-fprintf('Expected cost (approx): 0.693\n');
-fprintf('Gradient at initial theta (zeros): \n');
-fprintf(' %f \n', grad);
-fprintf('Expected gradients (approx):\n -0.1000\n -12.0092\n -11.2628\n');
-
-% Compute and display cost and gradient with non-zero theta
-test_theta = [-24; 0.2; 0.2];
-[cost, grad] = costFunction(test_theta, X, y);
-
-fprintf('\nCost at test theta: %f\n', cost);
-fprintf('Expected cost (approx): 0.218\n');
-fprintf('Gradient at test theta: \n');
-fprintf(' %f \n', grad);
-fprintf('Expected gradients (approx):\n 0.043\n 2.566\n 2.647\n');
-
-fprintf('\nProgram paused. Press enter to continue.\n');
+fprintf("First 10 exapmles from dataset: \n");
+fprintf('x=[%.0f %.0f 50f],y=%.0f\n',[X(1:10,:) y(1:10,:)]');
 pause;
 
 
-%% ============= Part 3: Optimizing using fminunc  =============
-%  In this exercise, you will use a built-in function (fminunc) to find the
-%  optimal parameters theta.
+%% ================ Part 2: Gradient Descent ================
 
-%  Set options for fminunc
-options = optimset('GradObj', 'on', 'MaxIter', 400);
 
-%  Run fminunc to obtain the optimal theta
-%  This function will return theta and the cost 
-[theta, cost] = ...
-	fminunc(@(t)(costFunction(t, X, y)), initial_theta, options);
+fprintf('Running gradient descent ...\n');
 
-% Print theta to screen
-fprintf('Cost at theta found by fminunc: %f\n', cost);
-fprintf('Expected cost (approx): 0.203\n');
-fprintf('theta: \n');
+% Choose some alpha value
+alpha = 0.1;
+num_iters = 400;
+
+% Init Theta and Run Gradient Descent 
+theta = zeros(3, 1);
+[theta, J_history] = gradientDescentMulti(X, y, theta, alpha, num_iters);
+
+% Plot the convergence graph
+figure;
+plot(1:numel(J_history), J_history, '-b', 'LineWidth', 2);
+xlabel('Number of iterations');
+ylabel('Cost J');
+
+% Display gradient descent's result
+fprintf('Theta computed from gradient descent: \n');
 fprintf(' %f \n', theta);
-fprintf('Expected theta (approx):\n');
-fprintf(' -25.161\n 0.206\n 0.201\n');
-
-% Plot Boundary
-plotDecisionBoundary(theta, X, y);
-
-% Put some labels 
-hold on;
-% Labels and Legend
-xlabel('Exam 1 score')
-ylabel('Exam 2 score')
-
-% Specified in plot order
-legend('Admitted', 'Not admitted')
-hold off;
-
-fprintf('\nProgram paused. Press enter to continue.\n');
-pause;
-
-%% ============== Part 4: Predict and Accuracies ==============
-%  After learning the parameters, you'll like to use it to predict the outcomes
-%  on unseen data. In this part, you will use the logistic regression model
-%  to predict the probability that a student with score 45 on exam 1 and 
-%  score 85 on exam 2 will be admitted.
-%
-%  Furthermore, you will compute the training and test set accuracies of 
-%  our model.
-%
-%  Your task is to complete the code in predict.m
-
-%  Predict probability for a student with score 45 on exam 1 
-%  and score 85 on exam 2 
-
-prob = sigmoid([1 45 85] * theta);
-fprintf(['For a student with scores 45 and 85, we predict an admission ' ...
-         'probability of %f\n'], prob);
-fprintf('Expected value: 0.775 +/- 0.002\n\n');
-
-% Compute accuracy on our training set
-p = predict(theta, X);
-
-fprintf('Train Accuracy: %f\n', mean(double(p == y)) * 100);
-fprintf('Expected accuracy (approx): 89.0\n');
 fprintf('\n');
 
+% Estimate the price of a 1650 sq-ft, 3 br house
+% ====================== YOUR CODE HERE ======================
+% Recall that the first column of X is all-ones. Thus, it does
+% not need to be normalized.
+price = [1 (1650-mu(1))/sigma(1)  (3-mu(2))/sigma(2)]*theta; 
+
+
+% ============================================================
+
+fprintf(['Predicted price of a 1650 sq-ft, 3 br house ' ...
+         '(using gradient descent):\n $%f\n'], price);
+
+fprintf('Program paused. Press enter to continue.\n');
+pause;
+
+%% ================ Part 3: Normal Equations ================
+
+fprintf('Solving with normal equations...\n');
+
+% ====================== YOUR CODE HERE ======================
+% Instructions: The following code computes the closed form 
+%               solution for linear regression using the normal
+%               equations. You should complete the code in 
+%               normalEqn.m
+%
+%               After doing so, you should complete this code 
+%               to predict the price of a 1650 sq-ft, 3 br house.
+%
+
+%% Load Data
+data = csvread('ex2data.txt');
+X = data(:, 1:2);
+y = data(:, 3);
+m = length(y);
+
+% Add intercept term to X
+X = [ones(m, 1) X];
+
+% Calculate the parameters from the normal equation
+theta = normalEqn(X, y);
+
+% Display normal equation's result
+fprintf('Theta computed from the normal equations: \n');
+fprintf(' %f \n', theta);
+fprintf('\n');
+
+
+% Estimate the price of a 1650 sq-ft, 3 br house
+% ====================== YOUR CODE HERE ======================
+price = [1 1650 3]*theta; % You should change this
+
+
+% ============================================================
+
+fprintf(['Predicted price of a 1650 sq-ft, 3 br house ' ...
+         '(using normal equations):\n $%f\n'], price);
 

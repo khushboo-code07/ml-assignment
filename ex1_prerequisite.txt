@@ -1,0 +1,12 @@
+The following prerequisites of matlab command/methodology are needed to complete this exercise.
+
+●	How to import data into matlab from .txt file (Matlab command : load, csvread)
+●	How to find size and length of the matrix (Matlab command : size, length)
+●	Creating matrix with all zeros or ones (Matlab command: zeros, ones)
+●	Adding one column of one’s to a existing matrix 
+●	Element-wise operation in matrix. Eg: Multiplying all elements in a vector by 2
+●	Subtracting of two matrix
+●	Summation of all elements in a vector (Matlab command: sum)
+●	Plot/visualisation of data in matlab (Matlab command: plot, surf, contour)
+●	Functions in matlab (similar to functions in C language, read the syntax)
+●	How to segregate/form a smaller matrix from larger matrix (eg: from 3 x 3 matrix, create 3 x 2 matrix, considering only first two columns)
